@@ -21,7 +21,6 @@ export const createApp = () => {
 
   app.use("/api", createApiRouter(sessions));
 
-  console.log("working ")
 
   app.use(errorHandler);
 
