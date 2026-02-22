@@ -7,6 +7,8 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
+import Profile from "@/pages/profile"
+import { AuthProvider } from "@/context/authcontext";
 
 function Router() {
   return (
@@ -14,6 +16,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -21,12 +24,14 @@ function Router() {
 
 function App() {
   return (
+        <AuthProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router />
       </TooltipProvider>
     </QueryClientProvider>
+        </AuthProvider>
   );
 }
 
