@@ -16,8 +16,5 @@
     "start:api": "yarn workspace zk-identity-api start",
     "build:zk": "yarn workspace zk-node build",
     "dev": "yarn dev:web"
-  },
-  "dependencies": {
-    "react-router-dom": "^7.13.0"
   }
 }
