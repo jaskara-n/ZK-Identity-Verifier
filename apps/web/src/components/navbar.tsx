@@ -1,9 +1,16 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Shield, Lock, Activity } from "lucide-react";
+import { signOut } from "firebase/auth";
+import { useAuth } from "@/context/authcontext";
+import { auth } from "@/firebase";
+
 
 export function Navbar() {
   const [location] = useLocation();
+  const { user } = useAuth();
+
+  console.log(user?.email);
 
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-white/10 bg-background/80 backdrop-blur-md">
@@ -24,7 +31,7 @@ export function Navbar() {
           <Link href="/dashboard"><a className="hover:text-foreground transition-colors">Dashboard</a></Link>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           <Link href="/auth">
             <Button variant="ghost" size="sm" className="hidden sm:flex">
               Sign In
@@ -35,7 +42,50 @@ export function Navbar() {
               Get Verified
             </Button>
           </Link>
-        </div>
+        </div> */}
+
+
+         <div className="flex items-center gap-4">
+      {user ? (
+        <>
+        <Button
+          size="sm"
+          className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-200"
+          onClick={() => signOut(auth)}
+        >
+          Logout
+        </Button>
+          {/* Profile Avatar */}
+          <Link href="/profile">
+            <img
+              src={user.photoURL || "/default-avatar.png"} // fallback image
+              alt="Profile"
+              className="w-8 h-8 rounded-full cursor-pointer border-2 border-gray-300"
+            />
+          </Link>
+          </>
+      ) : (
+        <>
+          <Link href="/auth">
+            <Button variant="ghost" size="sm" className="hidden sm:flex">
+              Sign In
+            </Button>
+          </Link>
+          <Link href="/auth?mode=register">
+            <Button
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+            >
+              Get Verified
+            </Button>
+          </Link>
+        </>
+      )}
+    </div>
+
+
+
+
       </div>
     </nav>
   );

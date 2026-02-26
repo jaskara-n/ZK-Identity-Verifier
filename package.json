@@ -1,8 +1,12 @@
 {
   "name": "zk-identity-verifier",
   "private": true,
-  "packageManager": "yarn@1.22.22",
-  "workspaces": ["apps/web", "apps/api", "crates/zk-node"],
+  "packageManager": "yarn@4.0.0",
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "crates/zk-node"
+  ],
   "scripts": {
     "dev:web": "yarn workspace zk-identity-web dev",
     "build:web": "yarn workspace zk-identity-web build",
@@ -12,5 +16,8 @@
     "start:api": "yarn workspace zk-identity-api start",
     "build:zk": "yarn workspace zk-node build",
     "dev": "yarn dev:web"
+  },
+  "dependencies": {
+    "react-router-dom": "^7.13.0"
   }
 }
