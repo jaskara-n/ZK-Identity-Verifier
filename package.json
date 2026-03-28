@@ -5,16 +5,21 @@
   "workspaces": [
     "apps/web",
     "apps/api",
+    "apps/verifier",
     "crates/zk-node"
   ],
   "scripts": {
-    "dev:web": "yarn workspace zk-identity-web dev",
-    "build:web": "yarn workspace zk-identity-web build",
-    "preview:web": "yarn workspace zk-identity-web preview",
-    "dev:api": "yarn workspace zk-identity-api dev",
-    "build:api": "yarn workspace zk-identity-api build",
-    "start:api": "yarn workspace zk-identity-api start",
-    "build:zk": "yarn workspace zk-node build",
+    "dev:web": "yarn --cwd ./apps/web dev",
+    "build:web": "yarn --cwd ./apps/web build",
+    "preview:web": "yarn --cwd ./apps/web preview",
+    "dev:api": "yarn --cwd ./apps/api dev",
+    "build:api": "yarn --cwd ./apps/api build",
+    "start:api": "yarn --cwd ./apps/api start",
+    "dev:verifier": "yarn --cwd ./apps/verifier dev",
+    "build:verifier": "yarn --cwd ./apps/verifier build",
+    "start:verifier": "yarn --cwd ./apps/verifier start",
+    "build:zk": "yarn --cwd ./crates/zk-node build",
+    "dev:all": "bash ./scripts/dev-all.sh",
     "dev": "yarn dev:web"
   }
 }

@@ -8,6 +8,8 @@ import Home from "@/pages/home";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import Profile from "@/pages/profile"
+import DemoVerifierPage from "@/pages/demo-verifier";
+import DemoUserPage from "@/pages/demo-user";
 import { AuthProvider } from "@/context/authcontext";
 
 function Router() {
@@ -17,6 +19,8 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/profile" component={Profile} />
+      <Route path="/demo/verifier" component={DemoVerifierPage} />
+      <Route path="/demo/user" component={DemoUserPage} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZK-ID Verifier App</title>
+    <style>
+      :root {
+        --bg: #0a0f1f;
+        --bg-soft: #121a31;
+        --card: #17223f;
+        --border: #2a3961;
+        --text: #e8efff;
+        --muted: #9eb0d8;
+        --brand: #45d8a5;
+        --brand-ink: #082117;
+        --warn: #ff8b8b;
+        --ok: #7bf1b7;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 15% 10%, #20315f, var(--bg) 40%);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      .wrap { width: min(1080px, 100% - 32px); margin: 24px auto 40px; }
+      .hero {
+        background: linear-gradient(130deg, #1f2f5f, #111a32 65%);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+      }
+      h1 { margin: 0; font-size: 28px; }
+      .sub { color: var(--muted); margin: 8px 0 0; line-height: 1.4; }
+      .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .pill {
+        background: #0f1730;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 16px; }
+      .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+      .card h3 { margin: 0 0 10px; }
+      .row { margin-bottom: 10px; }
+      label { display: block; color: var(--muted); margin-bottom: 5px; font-size: 12px; }
+      input, select {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #314675;
+        background: #101a32;
+        color: var(--text);
+        padding: 9px;
+      }
+      button, .link-btn {
+        border: none;
+        border-radius: 9px;
+        padding: 10px 12px;
+        font-weight: 700;
+        background: var(--brand);
+        color: var(--brand-ink);
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+      }
+      button:disabled { opacity: 0.6; cursor: not-allowed; }
+      .ghost { background: transparent; border: 1px solid #3c4f7a; color: var(--text); }
+      .row-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+      .status { margin-top: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-soft); padding: 12px; }
+      .status-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      .state { font-size: 12px; border-radius: 999px; padding: 5px 10px; background: #17284e; color: var(--muted); }
+      .state.ok { color: #083723; background: var(--ok); }
+      .state.bad { color: #3f0d11; background: var(--warn); }
+      pre {
+        margin: 10px 0 0;
+        max-height: 280px;
+        overflow: auto;
+        border-radius: 10px;
+        border: 1px solid #2c3d64;
+        background: #0a1227;
+        color: #cfe0ff;
+        padding: 10px;
+        white-space: pre-wrap;
+      }
+      .muted { color: var(--muted); font-size: 12px; }
+      .danger { color: var(--warn); font-size: 12px; margin-top: 8px; }
+      .verdict {
+        margin-top: 10px;
+        border-radius: 10px;
+        border: 1px solid #304470;
+        padding: 10px;
+        background: #0f1730;
+      }
+      .verdict strong { font-size: 22px; letter-spacing: 0.3px; }
+      .verdict.ok strong { color: var(--ok); }
+      .verdict.bad strong { color: var(--warn); }
+      details { margin-top: 12px; }
+      summary { cursor: pointer; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <h1>Verifier App (Partner Side)</h1>
+        <p class="sub">Professional flow: create challenge -> send user to ZK-ID user app -> fetch final decision. No raw identity data needed on verifier side.</p>
+        <div class="pill-row">
+          <span class="pill">Verifier UI: http://localhost:5050</span>
+          <span class="pill">User App: http://localhost:5173/demo/user</span>
+          <span class="pill" id="selectedChain">Chain: Ethereum (Mock)</span>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h3>1. Register + Auth</h3>
+          <div class="row"><label>Client Name</label><input id="clientName" value="merchant-app" /></div>
+          <div class="row"><label>Verifier API Key</label><input id="apiKey" /></div>
+          <div class="row"><label>Mock Chain</label>
+            <select id="chainName">
+              <option>Ethereum (Mock)</option>
+              <option>Polygon (Mock)</option>
+              <option>Base (Mock)</option>
+              <option>Arbitrum (Mock)</option>
+            </select>
+          </div>
+          <div class="row"><label>Bearer Access Token</label><input id="accessToken" /></div>
+          <div class="row-buttons">
+            <button id="registerBtn">Register</button>
+            <button id="tokenBtn">Issue Token</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>2. Create Challenge</h3>
+          <div class="row"><label>Verifier ID</label><input id="verifierId" value="merchant-123" /></div>
+          <div class="row"><label>Age Threshold</label><input id="ageThreshold" value="18" /></div>
+          <div class="row"><label>Challenge ID</label><input id="challengeId" /></div>
+          <div class="row"><label>Session ID</label><input id="sessionId" /></div>
+          <div class="row-buttons">
+            <button id="challengeBtn">Create Challenge</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>3. Send User to ZK-ID App</h3>
+          <p class="muted">User opens this link, approves proof generation in their app, and submits to this challenge.</p>
+          <div class="row"><label>User Flow Link</label><input id="userFlowUrl" readonly /></div>
+          <div class="row-buttons">
+            <a id="openUserAppBtn" class="link-btn ghost" href="http://localhost:5173/demo/user" target="_blank" rel="noreferrer">Open User App</a>
+          </div>
+          <div id="verdictCard" class="verdict">
+            <div class="muted">Verifier Decision</div>
+            <strong id="verdictText">Pending</strong>
+          </div>
+          <div class="row-buttons" style="margin-top:10px;">
+            <button id="statusBtn" class="ghost">Fetch Status</button>
+            <button id="togglePollBtn" class="ghost">Start Auto Poll</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h3>4. Credential Management</h3>
+          <div class="row"><label>Credential ID (for revoke)</label><input id="credentialId" placeholder="cred-..." /></div>
+          <div class="row"><label>Revoke Reason</label><input id="revokeReason" value="User requested credential revocation" /></div>
+          <div class="row-buttons">
+            <button id="fetchCredentialsBtn" class="ghost">Fetch Issued Credentials</button>
+            <button id="revokeBtn">Revoke Credential</button>
+          </div>
+
+          <details>
+            <summary>Demo Shortcut (Admin only)</summary>
+            <p class="muted">Not part of real verifier flow. Only for fast local demos.</p>
+            <div class="row"><label>Birth Date (YYYY-MM-DD)</label><input id="birthDate" value="2000-01-01" /></div>
+            <div class="row"><label>Passport Number</label><input id="passportNumber" value="P1234567" /></div>
+            <button id="submitBtn" class="ghost">Generate + Submit Proof (Shortcut)</button>
+          </details>
+        </article>
+      </section>
+
+      <section class="status">
+        <div class="status-head">
+          <strong>Demo Output</strong>
+          <span id="state" class="state">Ready</span>
+        </div>
+        <div id="error" class="danger"></div>
+        <pre id="output">Waiting for actions...</pre>
+      </section>
+    </div>
+
+    <script src="/ui.js"></script>
+  </body>
+</html>

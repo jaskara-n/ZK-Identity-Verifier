@@ -29,13 +29,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ShieldCheck, Loader2 } from "lucide-react";
-
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
-import { auth, googleProvider } from "@/firebase";
+import { useAuth } from "@/context/authcontext";
 
 // Schemas
 const loginSchema = z.object({
@@ -57,6 +51,7 @@ const registerSchema = z
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const { signIn, register } = useAuth();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -72,12 +67,7 @@ export default function AuthPage() {
   async function onLogin(data: z.infer<typeof loginSchema>) {
     try {
       setIsLoading(true);
-      const userCred = await signInWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      console.log("Login User:", userCred.user);
+      await signIn(data.email, data.password);
       setLocation("/dashboard");
     } catch (err) {
       console.error(err);
@@ -91,31 +81,11 @@ export default function AuthPage() {
   async function onRegister(data: z.infer<typeof registerSchema>) {
     try {
       setIsLoading(true);
-      const userCred = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      console.log("Registered User:", userCred.user);
+      await register(data.email, data.password);
       setLocation("/dashboard");
     } catch (err) {
       console.error(err);
       alert("Registration failed");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  // 🔹 Google Sign In
-  async function handleGoogleLogin() {
-    try {
-      setIsLoading(true);
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("Google User:", result.user);
-      setLocation("/dashboard");
-    } catch (err) {
-      console.error(err);
-      alert("Google login failed");
     } finally {
       setIsLoading(false);
     }
@@ -246,26 +216,9 @@ export default function AuthPage() {
               </TabsContent>
             </Tabs>
 
-            {/* GOOGLE BUTTON */}
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full bg-background hover:bg-muted"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-            >
-              Continue with Google
-            </Button>
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              Local demo auth is enabled for end-to-end testing.
+            </p>
           </CardContent>
 
           <CardFooter className="text-center text-sm text-muted-foreground">
