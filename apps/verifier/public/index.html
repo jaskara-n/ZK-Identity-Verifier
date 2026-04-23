@@ -3,195 +3,283 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ZK-ID Verifier App</title>
+    <title>Acme Marketplace · powered by ZK-ID</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
     <style>
       :root {
-        --bg: #0a0f1f;
-        --bg-soft: #121a31;
-        --card: #17223f;
-        --border: #2a3961;
-        --text: #e8efff;
-        --muted: #9eb0d8;
-        --brand: #45d8a5;
-        --brand-ink: #082117;
-        --warn: #ff8b8b;
-        --ok: #7bf1b7;
+        --bg: #07091a;
+        --bg-soft: #0c1230;
+        --card: #111a3a;
+        --card-soft: #0d1530;
+        --border: #242f5c;
+        --text: #eaf0ff;
+        --muted: #8fa1cc;
+        --brand: #5eead4;
+        --brand-2: #7c3aed;
+        --brand-ink: #051812;
+        --warn: #fb7185;
+        --ok: #4ade80;
+        --amber: #fbbf24;
       }
       * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
       body {
-        margin: 0;
-        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-        background: radial-gradient(circle at 15% 10%, #20315f, var(--bg) 40%);
+        font-family: "Inter", system-ui, sans-serif;
+        background:
+          radial-gradient(900px 500px at 90% -10%, rgba(124, 58, 237, 0.22), transparent 60%),
+          radial-gradient(700px 400px at -10% 10%, rgba(94, 234, 212, 0.18), transparent 60%),
+          var(--bg);
         color: var(--text);
         min-height: 100vh;
       }
-      .wrap { width: min(1080px, 100% - 32px); margin: 24px auto 40px; }
-      .hero {
-        background: linear-gradient(130deg, #1f2f5f, #111a32 65%);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 20px;
-      }
-      h1 { margin: 0; font-size: 28px; }
-      .sub { color: var(--muted); margin: 8px 0 0; line-height: 1.4; }
-      .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-      .pill {
-        background: #0f1730;
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 6px 10px;
+      .sandbox-banner {
+        background: rgba(251, 191, 36, 0.1);
+        border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+        color: var(--amber);
+        text-align: center;
         font-size: 12px;
-        color: var(--muted);
+        padding: 6px 16px;
       }
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 16px; }
-      .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
-      .card h3 { margin: 0 0 10px; }
+      .nav {
+        position: sticky; top: 0; z-index: 10;
+        backdrop-filter: blur(12px);
+        background: rgba(7, 9, 26, 0.75);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .nav-inner {
+        max-width: 1120px; margin: 0 auto; padding: 14px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .brand { display: flex; align-items: center; gap: 10px; font-family: "Space Grotesk"; font-weight: 700; font-size: 20px; letter-spacing: 0.2px; }
+      .brand-badge { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--brand), var(--brand-2)); display: grid; place-items: center; color: #041; font-weight: 800; }
+      .nav-right { display: flex; gap: 20px; align-items: center; font-size: 14px; color: var(--muted); }
+      .nav-right a { color: var(--muted); text-decoration: none; }
+      .nav-right a:hover { color: var(--text); }
+
+      .wrap { max-width: 1120px; margin: 40px auto 80px; padding: 0 20px; }
+
+      .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; margin-bottom: 48px; }
+      @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+
+      .hero h1 { font-family: "Space Grotesk"; font-size: 44px; line-height: 1.1; margin: 14px 0 16px; letter-spacing: -0.5px; }
+      .hero h1 em { font-style: normal; background: linear-gradient(90deg, var(--brand), var(--brand-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .hero p { color: var(--muted); font-size: 16px; line-height: 1.6; max-width: 520px; }
+      .tag {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 999px;
+        background: rgba(94, 234, 212, 0.1); border: 1px solid rgba(94, 234, 212, 0.3);
+        color: var(--brand); font-size: 12px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase;
+      }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+      .btn {
+        cursor: pointer; border: none; padding: 12px 22px;
+        border-radius: 12px; font-weight: 600; font-size: 15px;
+        display: inline-flex; align-items: center; gap: 10px;
+        transition: transform 0.1s ease, box-shadow 0.2s ease;
+      }
+      .btn:active { transform: translateY(1px); }
+      .btn-primary { background: linear-gradient(135deg, var(--brand), #3dd9bc); color: var(--brand-ink); box-shadow: 0 10px 30px -10px rgba(94, 234, 212, 0.5); }
+      .btn-primary:hover { box-shadow: 0 14px 40px -10px rgba(94, 234, 212, 0.7); }
+      .btn-ghost { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border); color: var(--text); }
+      .btn-ghost:hover { background: rgba(255, 255, 255, 0.1); }
+      .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+      .btn .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.2s infinite; }
+      @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+      .spinner { width: 16px; height: 16px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      .product-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+        border: 1px solid var(--border); border-radius: 20px; padding: 24px;
+        display: flex; gap: 16px; align-items: center;
+      }
+      .product-img {
+        width: 96px; height: 96px; border-radius: 16px;
+        background: linear-gradient(135deg, #7c3aed, #22d3ee); display: grid; place-items: center; font-size: 40px;
+        flex-shrink: 0;
+      }
+      .product-info h3 { margin: 0 0 4px; font-size: 18px; }
+      .product-info p { color: var(--muted); margin: 0; font-size: 14px; }
+      .price { font-size: 20px; font-weight: 700; margin-top: 6px; }
+      .gated { color: var(--amber); font-size: 12px; margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; }
+
+      .status-card {
+        margin-top: 24px;
+        background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+        padding: 20px; display: none;
+      }
+      .status-card.visible { display: block; }
+      .status-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+      .status-head h3 { margin: 0; font-size: 16px; }
+      .pill {
+        padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+        background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border);
+      }
+      .pill.pending { background: rgba(251, 191, 36, 0.15); color: var(--amber); border-color: rgba(251, 191, 36, 0.35); }
+      .pill.verified { background: rgba(74, 222, 128, 0.15); color: var(--ok); border-color: rgba(74, 222, 128, 0.4); }
+      .pill.rejected, .pill.revoked, .pill.expired { background: rgba(251, 113, 133, 0.15); color: var(--warn); border-color: rgba(251, 113, 133, 0.4); }
+
+      .progress {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0 14px;
+      }
+      .progress .step { height: 6px; border-radius: 3px; background: var(--border); transition: background 0.3s; }
+      .progress .step.done { background: linear-gradient(90deg, var(--brand), var(--brand-2)); }
+
+      .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; font-size: 13px; }
+      .meta-grid .label { color: var(--muted); }
+      .meta-grid .value { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; }
+
+      .dev-console {
+        margin-top: 40px; background: var(--card-soft); border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+      }
+      .dev-console summary {
+        list-style: none; cursor: pointer; padding: 16px 20px;
+        display: flex; justify-content: space-between; align-items: center;
+        font-weight: 600; color: var(--muted);
+      }
+      .dev-console summary::-webkit-details-marker { display: none; }
+      .dev-console summary::after { content: "▾"; transition: transform 0.2s; color: var(--muted); }
+      .dev-console[open] summary::after { transform: rotate(180deg); }
+      .dev-console .body { padding: 0 20px 20px; border-top: 1px solid var(--border); }
+      .dev-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 16px; }
+      @media (max-width: 700px) { .dev-grid { grid-template-columns: 1fr; } }
+      .dev-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+      .dev-card h4 { margin: 0 0 10px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+      label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+      input { width: 100%; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 9px 11px; font-size: 13px; font-family: inherit; }
+      input:focus { outline: 2px solid rgba(94, 234, 212, 0.4); outline-offset: -1px; }
       .row { margin-bottom: 10px; }
-      label { display: block; color: var(--muted); margin-bottom: 5px; font-size: 12px; }
-      input, select {
-        width: 100%;
-        border-radius: 8px;
-        border: 1px solid #314675;
-        background: #101a32;
-        color: var(--text);
-        padding: 9px;
-      }
-      button, .link-btn {
-        border: none;
-        border-radius: 9px;
-        padding: 10px 12px;
-        font-weight: 700;
-        background: var(--brand);
-        color: var(--brand-ink);
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-block;
-      }
-      button:disabled { opacity: 0.6; cursor: not-allowed; }
-      .ghost { background: transparent; border: 1px solid #3c4f7a; color: var(--text); }
-      .row-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-      .status { margin-top: 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-soft); padding: 12px; }
-      .status-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-      .state { font-size: 12px; border-radius: 999px; padding: 5px 10px; background: #17284e; color: var(--muted); }
-      .state.ok { color: #083723; background: var(--ok); }
-      .state.bad { color: #3f0d11; background: var(--warn); }
-      pre {
-        margin: 10px 0 0;
-        max-height: 280px;
-        overflow: auto;
-        border-radius: 10px;
-        border: 1px solid #2c3d64;
-        background: #0a1227;
-        color: #cfe0ff;
-        padding: 10px;
-        white-space: pre-wrap;
-      }
-      .muted { color: var(--muted); font-size: 12px; }
-      .danger { color: var(--warn); font-size: 12px; margin-top: 8px; }
-      .verdict {
-        margin-top: 10px;
-        border-radius: 10px;
-        border: 1px solid #304470;
-        padding: 10px;
-        background: #0f1730;
-      }
-      .verdict strong { font-size: 22px; letter-spacing: 0.3px; }
-      .verdict.ok strong { color: var(--ok); }
-      .verdict.bad strong { color: var(--warn); }
-      details { margin-top: 12px; }
-      summary { cursor: pointer; color: var(--muted); }
+      .row-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .btn-sm { padding: 7px 12px; font-size: 13px; border-radius: 8px; }
+      pre { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 12px; color: #c7d3f4; max-height: 240px; overflow: auto; white-space: pre-wrap; margin-top: 12px; }
+      .err { color: var(--warn); font-size: 12px; margin-top: 6px; min-height: 14px; }
+      .foot { margin-top: 48px; color: var(--muted); font-size: 12px; text-align: center; }
+      .foot a { color: var(--brand); text-decoration: none; }
     </style>
   </head>
   <body>
+    <div class="sandbox-banner">Sandbox environment — this is a mock partner site demoing the ZK-ID integration.</div>
+    <nav class="nav">
+      <div class="nav-inner">
+        <div class="brand">
+          <span class="brand-badge">A</span>
+          <span>Acme Marketplace</span>
+        </div>
+        <div class="nav-right">
+          <a href="#" onclick="return false">Shop</a>
+          <a href="#" onclick="return false">Collections</a>
+          <a href="#dev-console">Integration</a>
+        </div>
+      </div>
+    </nav>
+
     <div class="wrap">
       <section class="hero">
-        <h1>Verifier App (Partner Side)</h1>
-        <p class="sub">Professional flow: create challenge -> send user to ZK-ID user app -> fetch final decision. No raw identity data needed on verifier side.</p>
-        <div class="pill-row">
-          <span class="pill">Verifier UI: http://localhost:5050</span>
-          <span class="pill">User App: http://localhost:5173/user-app</span>
-          <span class="pill" id="selectedChain">Chain: Ethereum (Mock)</span>
+        <div>
+          <span class="tag">Age-restricted product</span>
+          <h1>Verify once with <em>ZK-ID</em>.<br/>Shop anything, anywhere.</h1>
+          <p>
+            Acme partners with ZK-ID so customers never have to upload documents. A single zero-knowledge proof confirms age — and nothing else about your identity is shared.
+          </p>
+          <div class="cta-row">
+            <button id="verifyBtn" class="btn btn-primary">
+              <span class="dot"></span>
+              Verify age with ZK-ID
+            </button>
+            <button id="resetBtn" class="btn btn-ghost" style="display:none;">Start over</button>
+          </div>
+          <div class="err" id="heroError"></div>
+        </div>
+        <div class="product-card">
+          <div class="product-img">🥃</div>
+          <div class="product-info">
+            <h3>Kentucky Single Barrel</h3>
+            <p>Small-batch bourbon · 750ml</p>
+            <div class="price">$89</div>
+            <span class="gated" id="ageGate">⚠ Age verification required (21+)</span>
+          </div>
         </div>
       </section>
 
-      <section class="grid">
-        <article class="card">
-          <h3>1. Register + Auth</h3>
-          <div class="row"><label>Client Name</label><input id="clientName" value="merchant-app" /></div>
-          <div class="row"><label>Internal API Key</label><input id="internalApiKey" value="dev-internal-api-key-please-change" /></div>
-          <div class="row"><label>Verifier API Key</label><input id="apiKey" /></div>
-          <div class="row"><label>Mock Chain</label>
-            <select id="chainName">
-              <option>Ethereum (Mock)</option>
-              <option>Polygon (Mock)</option>
-              <option>Base (Mock)</option>
-              <option>Arbitrum (Mock)</option>
-            </select>
-          </div>
-          <div class="row"><label>Bearer Access Token</label><input id="accessToken" /></div>
-          <div class="row-buttons">
-            <button id="registerBtn">Register</button>
-            <button id="tokenBtn">Issue Token</button>
-          </div>
-        </article>
-
-        <article class="card">
-          <h3>2. Create Challenge</h3>
-          <div class="row"><label>Verifier ID</label><input id="verifierId" value="merchant-123" /></div>
-          <div class="row"><label>Age Threshold</label><input id="ageThreshold" value="18" /></div>
-          <div class="row"><label>Challenge ID</label><input id="challengeId" /></div>
-          <div class="row"><label>Session ID</label><input id="sessionId" /></div>
-          <div class="row-buttons">
-            <button id="challengeBtn">Create Challenge</button>
-          </div>
-        </article>
-
-        <article class="card">
-          <h3>3. Send User to ZK-ID App</h3>
-          <p class="muted">User opens this link, approves proof generation in their app, and submits to this challenge.</p>
-          <div class="row"><label>User Flow Link</label><input id="userFlowUrl" readonly /></div>
-          <div class="row-buttons">
-            <a id="openUserAppBtn" class="link-btn ghost" href="http://localhost:5173/user-app" target="_blank" rel="noreferrer">Open User App</a>
-          </div>
-          <div id="verdictCard" class="verdict">
-            <div class="muted">Verifier Decision</div>
-            <strong id="verdictText">Pending</strong>
-          </div>
-          <div class="row-buttons" style="margin-top:10px;">
-            <button id="statusBtn" class="ghost">Fetch Status</button>
-            <button id="togglePollBtn" class="ghost">Start Auto Poll</button>
-          </div>
-        </article>
-
-        <article class="card">
-          <h3>4. Credential Management</h3>
-          <div class="row"><label>Credential ID (for revoke)</label><input id="credentialId" placeholder="cred-..." /></div>
-          <div class="row"><label>Revoke Reason</label><input id="revokeReason" value="User requested credential revocation" /></div>
-          <div class="row-buttons">
-            <button id="fetchCredentialsBtn" class="ghost">Fetch Issued Credentials</button>
-            <button id="revokeBtn">Revoke Credential</button>
-          </div>
-
-          <details>
-            <summary>Demo Shortcut (Admin only)</summary>
-            <p class="muted">Not part of real verifier flow. Only for fast local demos.</p>
-            <div class="row"><label>Birth Date (YYYY-MM-DD)</label><input id="birthDate" value="2000-01-01" /></div>
-            <div class="row"><label>Passport Number</label><input id="passportNumber" value="P1234567" /></div>
-            <button id="submitBtn" class="ghost">Generate + Submit Proof (Shortcut)</button>
-          </details>
-        </article>
-      </section>
-
-      <section class="status">
+      <section class="status-card" id="statusCard">
         <div class="status-head">
-          <strong>Demo Output</strong>
-          <span id="state" class="state">Ready</span>
+          <h3>Verification status</h3>
+          <span class="pill" id="statusPill">Pending</span>
         </div>
-        <div id="error" class="danger"></div>
-        <pre id="output">Waiting for actions...</pre>
+        <div class="progress" id="progress">
+          <div class="step done"></div>
+          <div class="step"></div>
+          <div class="step"></div>
+          <div class="step"></div>
+        </div>
+        <p id="statusMsg" style="color: var(--muted); margin: 0 0 14px; font-size: 14px;">Waiting for user to approve in ZK-ID app…</p>
+        <div class="meta-grid">
+          <span class="label">Challenge</span><span class="value" id="metaChallenge">—</span>
+          <span class="label">Requirement</span><span class="value" id="metaRequirement">Age ≥ 21</span>
+          <span class="label">Session</span><span class="value" id="metaSession">—</span>
+          <span class="label">Credential</span><span class="value" id="metaCredential">not issued</span>
+        </div>
       </section>
+
+      <details class="dev-console" id="dev-console">
+        <summary>
+          <span>⚙ Developer console — see the raw integration</span>
+        </summary>
+        <div class="body">
+          <p style="color: var(--muted); font-size: 13px; margin: 14px 0;">
+            Everything above is powered by these four API calls. Use the controls below to inspect or drive them manually.
+          </p>
+          <div class="dev-grid">
+            <div class="dev-card">
+              <h4>1 · Register + Auth</h4>
+              <div class="row"><label>Client Name</label><input id="clientName" value="acme-marketplace" /></div>
+              <div class="row"><label>Internal API Key</label><input id="internalApiKey" value="dev-internal-api-key-please-change" /></div>
+              <div class="row"><label>Verifier API Key</label><input id="apiKey" placeholder="auto-filled on register" /></div>
+              <div class="row"><label>Access Token</label><input id="accessToken" placeholder="auto-filled on issue" /></div>
+              <div class="row-btns">
+                <button class="btn btn-ghost btn-sm" id="registerBtn">Register client</button>
+                <button class="btn btn-ghost btn-sm" id="tokenBtn">Issue token</button>
+              </div>
+            </div>
+            <div class="dev-card">
+              <h4>2 · Challenge</h4>
+              <div class="row"><label>Verifier ID</label><input id="verifierId" value="acme-checkout" /></div>
+              <div class="row"><label>Age Threshold</label><input id="ageThreshold" value="21" /></div>
+              <div class="row"><label>Challenge ID</label><input id="challengeId" placeholder="auto-filled on create" /></div>
+              <div class="row"><label>Session ID</label><input id="sessionId" readonly /></div>
+              <div class="row-btns">
+                <button class="btn btn-ghost btn-sm" id="challengeBtn">Create challenge</button>
+                <button class="btn btn-ghost btn-sm" id="statusBtn">Fetch status</button>
+                <button class="btn btn-ghost btn-sm" id="togglePollBtn">Start auto-poll</button>
+              </div>
+            </div>
+            <div class="dev-card">
+              <h4>3 · Credentials</h4>
+              <div class="row"><label>Credential ID</label><input id="credentialId" placeholder="auto-filled after verify" /></div>
+              <div class="row"><label>Revoke reason</label><input id="revokeReason" value="Requested by merchant" /></div>
+              <div class="row-btns">
+                <button class="btn btn-ghost btn-sm" id="fetchCredentialsBtn">List credentials</button>
+                <button class="btn btn-ghost btn-sm" id="revokeBtn">Revoke</button>
+              </div>
+            </div>
+            <div class="dev-card">
+              <h4>4 · Raw output</h4>
+              <div class="err" id="error"></div>
+              <pre id="output">Waiting for actions…</pre>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <p class="foot">
+        ZK-ID end-user app: <a href="#" id="zkLink" target="_blank" rel="noreferrer">http://localhost:5173</a>
+      </p>
     </div>
 
+    <script src="/config.js"></script>
     <script src="/ui.js"></script>
   </body>
 </html>

@@ -6,6 +6,7 @@ import { createSessionsRouter } from "./sessions";
 import { createProofsRouter } from "./proofs";
 import { createVerifyRouter } from "./verify";
 import { createVerifierRouter } from "./verifier";
+import { createUserRouter } from "./user";
 
 export const createApiRouter = (
   sessions: SessionService,
@@ -18,6 +19,7 @@ export const createApiRouter = (
   router.use(createProofsRouter(sessions));
   router.use(createVerifyRouter(sessions));
   router.use(createVerifierRouter(verifierService));
+  router.use(createUserRouter(verifierService));
 
   return router;
 };

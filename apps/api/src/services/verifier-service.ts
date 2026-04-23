@@ -1,7 +1,10 @@
-import { randomBytes, randomUUID } from "crypto";
+import { createHash, randomBytes, randomUUID } from "crypto";
 
 import type { SessionService } from "./session-service";
 import type { Proof, VerificationResult, ZkBridge } from "./zk-service";
+
+export const hashPassport = (passportNumber: string) =>
+  createHash("sha256").update(`passport:${passportNumber.trim()}`).digest("hex");
 
 export type VerifierClient = {
   id: string;
@@ -36,6 +39,7 @@ export type VerifiableCredential = {
   verifierId: string;
   ageThreshold: number;
   nullifier: string;
+  passportHash: string;
   issuedAt: Date;
   status: VerifiableCredentialStatus;
   revokedAt?: Date;
@@ -148,6 +152,7 @@ export class VerifierService {
           verifierId: challenge.verifierId,
           ageThreshold: challenge.ageThreshold,
           nullifier: input.proof.payload.nullifier,
+          passportHash: hashPassport(input.passportNumber),
           issuedAt: new Date(),
           status: "active",
         };
@@ -184,5 +189,45 @@ export class VerifierService {
     this.credentials.set(credential.id, credential);
 
     return credential;
+  }
+
+  revokeAllForPassport(passportNumber: string, reason: string): VerifiableCredential[] {
+    const target = hashPassport(passportNumber);
+    const revoked: VerifiableCredential[] = [];
+
+    for (const credential of this.credentials.values()) {
+      if (credential.passportHash === target && credential.status === "active") {
+        credential.status = "revoked";
+        credential.revokedAt = new Date();
+        credential.revokeReason = reason;
+        this.credentials.set(credential.id, credential);
+        revoked.push(credential);
+      }
+    }
+
+    return revoked;
+  }
+
+  getChallengePublicStatus(challengeId: string) {
+    const challenge = this.getChallenge(challengeId);
+    if (!challenge) return null;
+
+    let effectiveStatus: VerificationChallengeStatus | "revoked" = challenge.status;
+    let credentialStatus: VerifiableCredentialStatus | undefined;
+    let credentialId: string | undefined;
+
+    const credential = [...this.credentials.values()].find(
+      (item) => item.challengeId === challenge.id,
+    );
+
+    if (credential) {
+      credentialStatus = credential.status;
+      credentialId = credential.id;
+      if (credential.status === "revoked") {
+        effectiveStatus = "revoked";
+      }
+    }
+
+    return { challenge, effectiveStatus, credentialStatus, credentialId };
   }
 }

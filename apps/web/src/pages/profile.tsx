@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 
 import { Navbar } from "@/components/navbar";
+import { SandboxBanner } from "@/components/sandbox-banner";
 import { useAuth } from "@/context/authcontext";
 
 export default function ProfilePage() {
@@ -69,10 +70,11 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      <main className="container mx-auto px-6 pt-24 pb-12 space-y-6">
+      <SandboxBanner />
+      <main className="container mx-auto px-6 pt-32 pb-12 space-y-6">
         <header>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted-foreground">Manage your local demo account details.</p>
+          <h1 className="text-3xl font-heading font-bold">Account settings</h1>
+          <p className="text-muted-foreground">Manage your ZK-ID account details.</p>
         </header>
 
         <section className="rounded-xl border border-border p-4 space-y-4 max-w-2xl">

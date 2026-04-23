@@ -1,17 +1,19 @@
-import { Link } from "wouter";
-import { Shield } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { Shield, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/authcontext";
+import { VERIFIER_URL } from "@/lib/config";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const [, setLocation] = useLocation();
 
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-white/10 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/">
-          <span className="flex items-center gap-2 font-heading font-bold text-xl tracking-tight hover:opacity-80 transition-opacity">
+          <span className="flex items-center gap-2 font-heading font-bold text-xl tracking-tight hover:opacity-80 transition-opacity cursor-pointer">
             <span className="bg-primary/20 p-2 rounded-lg">
               <Shield className="w-5 h-5 text-primary" />
             </span>
@@ -20,38 +22,44 @@ export function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-          <Link href="/"><span className="hover:text-foreground transition-colors">Home</span></Link>
-          <Link href="/dashboard"><span className="hover:text-foreground transition-colors">Dashboard</span></Link>
-          <Link href="/user-app"><span className="hover:text-foreground transition-colors">User App</span></Link>
-          <a href="http://localhost:5050" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">Verifier App</a>
+          <Link href="/"><span className="hover:text-foreground transition-colors cursor-pointer">Home</span></Link>
+          {user && (
+            <Link href="/dashboard"><span className="hover:text-foreground transition-colors cursor-pointer">Dashboard</span></Link>
+          )}
+          <a
+            href={VERIFIER_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-foreground transition-colors inline-flex items-center gap-1"
+          >
+            Partner Demo <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {user ? (
             <>
-              <Button
-                size="sm"
-                className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-200"
-                onClick={signOut}
-              >
-                Logout
-              </Button>
               <Link href="/profile">
-                <span className="w-8 h-8 rounded-full cursor-pointer border-2 border-gray-300 grid place-items-center text-xs font-semibold">
+                <span className="w-8 h-8 rounded-full cursor-pointer border border-border bg-muted grid place-items-center text-xs font-semibold hover:border-primary transition-colors">
                   {(user.displayName || user.email).slice(0, 1).toUpperCase()}
                 </span>
               </Link>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => { signOut(); setLocation("/"); }}
+              >
+                Sign out
+              </Button>
             </>
           ) : (
             <>
               <Link href="/auth">
-                <Button variant="ghost" size="sm" className="hidden sm:flex">
-                  Sign In
-                </Button>
+                <Button variant="ghost" size="sm" className="hidden sm:flex">Sign in</Button>
               </Link>
               <Link href="/auth?mode=register">
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
-                  Create Account
+                <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                  Get started
                 </Button>
               </Link>
             </>

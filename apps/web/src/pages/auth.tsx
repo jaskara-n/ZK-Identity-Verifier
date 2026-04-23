@@ -1,12 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLocation } from "wouter";
 
 import { Navbar } from "@/components/navbar";
+import { SandboxBanner } from "@/components/sandbox-banner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -31,14 +32,19 @@ const registerSchema = z
 
 export default function AuthPage() {
   const [location, setLocation] = useLocation();
+  const { user, signIn, register } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { signIn, register } = useAuth();
 
-  const defaultTab = useMemo(() => {
-    const mode = new URLSearchParams(window.location.search).get("mode");
-    return mode === "register" ? "register" : "login";
-  }, [location]);
+  const params = useMemo(() => new URLSearchParams(window.location.search), [location]);
+  const defaultTab = params.get("mode") === "register" ? "register" : "login";
+  const redirect = params.get("redirect");
+
+  const destination = redirect ? decodeURIComponent(redirect) : "/dashboard";
+
+  useEffect(() => {
+    if (user) setLocation(destination);
+  }, [user, destination, setLocation]);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -55,7 +61,7 @@ export default function AuthPage() {
       setError("");
       setIsLoading(true);
       await signIn(data.email, data.password);
-      setLocation("/dashboard");
+      setLocation(destination);
     } catch (err) {
       setError((err as Error).message || "Login failed");
     } finally {
@@ -68,7 +74,7 @@ export default function AuthPage() {
       setError("");
       setIsLoading(true);
       await register(data.email, data.password);
-      setLocation("/dashboard");
+      setLocation(destination);
     } catch (err) {
       setError((err as Error).message || "Registration failed");
     } finally {
@@ -79,24 +85,25 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
+      <SandboxBanner />
 
-      <div className="flex-1 flex items-center justify-center p-6 pt-24">
+      <div className="flex-1 flex items-center justify-center p-6 pt-32">
         <Card className="w-full max-w-md border-border/50 shadow-2xl">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <ShieldCheck className="w-6 h-6 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold">Welcome to ZK-ID</CardTitle>
-            <CardDescription>Local demo auth for clean end-to-end testing</CardDescription>
+            <CardDescription>Sign in to manage your zero-knowledge identity.</CardDescription>
           </CardHeader>
 
           <CardContent>
-            {error ? <p className="mb-4 text-sm text-red-500">{error}</p> : null}
+            {error ? <p className="mb-4 text-sm text-red-400">{error}</p> : null}
 
             <Tabs defaultValue={defaultTab}>
               <TabsList className="grid w-full grid-cols-2 mb-8">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+                <TabsTrigger value="login">Sign in</TabsTrigger>
+                <TabsTrigger value="register">Create account</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
@@ -108,9 +115,7 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input {...field} autoComplete="email" />
-                          </FormControl>
+                          <FormControl><Input {...field} autoComplete="email" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -121,16 +126,14 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} autoComplete="current-password" />
-                          </FormControl>
+                          <FormControl><Input type="password" {...field} autoComplete="current-password" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full h-11" disabled={isLoading}>
                       {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                      Sign In
+                      Sign in
                     </Button>
                   </form>
                 </Form>
@@ -145,9 +148,7 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input {...field} autoComplete="email" />
-                          </FormControl>
+                          <FormControl><Input {...field} autoComplete="email" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -158,9 +159,7 @@ export default function AuthPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} autoComplete="new-password" />
-                          </FormControl>
+                          <FormControl><Input type="password" {...field} autoComplete="new-password" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -170,27 +169,21 @@ export default function AuthPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
-                          <FormControl>
-                            <Input type="password" {...field} autoComplete="new-password" />
-                          </FormControl>
+                          <FormLabel>Confirm password</FormLabel>
+                          <FormControl><Input type="password" {...field} autoComplete="new-password" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full h-11" disabled={isLoading}>
                       {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                      Create Account
+                      Create account
                     </Button>
                   </form>
                 </Form>
               </TabsContent>
             </Tabs>
           </CardContent>
-
-          <CardFooter className="text-center text-sm text-muted-foreground">
-            Demo mode only. Use backend auth provider in production.
-          </CardFooter>
         </Card>
       </div>
     </div>

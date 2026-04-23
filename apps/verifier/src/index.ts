@@ -9,6 +9,7 @@ const envSchema = z.object({
   HOST: z.string().default("0.0.0.0"),
   BACKEND_URL: z.string().url().default("http://localhost:5001"),
   INTERNAL_API_KEY: z.string().min(16).default("dev-internal-api-key-please-change"),
+  ZK_APP_URL: z.string().url().default("http://localhost:5173"),
 });
 
 const env = envSchema.parse(process.env);
@@ -231,6 +232,13 @@ app.post("/credentials/:credentialId/revoke", async (req, res, next) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.resolve(__dirname, "../public");
+
+app.get("/config.js", (_req, res) => {
+  res.type("application/javascript").send(
+    `window.__ZK_APP_URL__ = ${JSON.stringify(env.ZK_APP_URL)};`,
+  );
+});
+
 app.use(express.static(publicDir));
 app.get("/", (_req, res) => {
   res.sendFile(path.join(publicDir, "index.html"));

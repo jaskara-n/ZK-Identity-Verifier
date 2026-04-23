@@ -37,7 +37,7 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               <Badge variant="outline" className="mb-6 px-4 py-1 border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-                v2.0 Now Live on Mainnet
+                Sandbox Preview · v0.9
               </Badge>
             </motion.div>
 
@@ -66,14 +66,16 @@ export default function Home() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <Link href="/auth">
+              <Link href="/auth?mode=register">
                 <Button size="lg" className="w-full sm:w-auto text-lg h-12 px-8 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20">
-                  Start Verification
+                  Create your ZK Identity
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg h-12 px-8 backdrop-blur-sm bg-background/50 hover:bg-background/80">
-                Read Whitepaper
-              </Button>
+              <a href={(import.meta.env.VITE_VERIFIER_URL || "http://localhost:5050")} target="_blank" rel="noreferrer">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg h-12 px-8 backdrop-blur-sm bg-background/50 hover:bg-background/80">
+                  See partner demo
+                </Button>
+              </a>
             </motion.div>
           </div>
         </div>

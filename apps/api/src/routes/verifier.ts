@@ -131,16 +131,18 @@ export const createVerifierRouter = (verifierService: VerifierService) => {
     "/verifier/challenges/:challengeId/public",
     (req, res, next) => {
       try {
-        const challenge = verifierService.getChallenge(req.params.challengeId);
-        if (!challenge) throw new ApiError(404, "challenge not found");
+        const info = verifierService.getChallengePublicStatus(req.params.challengeId);
+        if (!info) throw new ApiError(404, "challenge not found");
 
+        const { challenge, effectiveStatus, credentialStatus } = info;
         res.json({
           challengeId: challenge.id,
           verifierId: challenge.verifierId,
           ageThreshold: challenge.ageThreshold,
           sessionId: challenge.sessionId,
           nonce: challenge.nonce,
-          status: challenge.status,
+          status: effectiveStatus,
+          credentialStatus,
           expiresAt: challenge.expiresAt.toISOString(),
         });
       } catch (err) {
@@ -157,15 +159,18 @@ export const createVerifierRouter = (verifierService: VerifierService) => {
         const requester = (req as RequestWithVerifier).verifierClient;
         if (!requester) throw new ApiError(401, "unauthorized");
 
-        const challenge = verifierService.getChallenge(req.params.challengeId);
-        if (!challenge) throw new ApiError(404, "challenge not found");
+        const info = verifierService.getChallengePublicStatus(req.params.challengeId);
+        if (!info) throw new ApiError(404, "challenge not found");
+        const { challenge, effectiveStatus, credentialStatus, credentialId } = info;
         if (challenge.clientId !== requester.id) {
           throw new ApiError(403, "forbidden");
         }
 
         res.json({
           challengeId: challenge.id,
-          status: challenge.status,
+          status: effectiveStatus,
+          credentialStatus,
+          credentialId,
           reason: challenge.reason,
           verifierId: challenge.verifierId,
           ageThreshold: challenge.ageThreshold,
