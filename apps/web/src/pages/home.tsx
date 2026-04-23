@@ -7,21 +7,11 @@ import { Shield, Lock, Zap, Globe, Fingerprint, RefreshCcw } from "lucide-react"
 import { motion } from "framer-motion";
 import heroBg from "@assets/generated_images/abstract_zk_proof_identity_background.png";
 import { Link } from "wouter";
-import { useAuth } from "@/context/authcontext";
 
 
 
 
 export default function Home() {
-
-
-
-  const { user } = useAuth();
-  console.log(user?.email);
-
-
-
-
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden font-sans">

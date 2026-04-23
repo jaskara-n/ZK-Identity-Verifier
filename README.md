@@ -23,8 +23,9 @@ bash ./scripts/dev-all.sh
 
 Open:
 - Web dashboard: `http://localhost:5173/dashboard`
+- Web user app: `http://localhost:5173/user-app`
 - Third-party verifier app: `http://localhost:5050`
-- API health: `http://localhost:5000/api/health`
+- API health: `http://localhost:5001/api/health`
 
 ## Demo flow (short)
 1. Dashboard: Register client -> Issue token -> Create challenge -> Generate + submit proof.

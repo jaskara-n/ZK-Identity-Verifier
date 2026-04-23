@@ -16,8 +16,9 @@ bash ./scripts/dev-all.sh
 ```
 
 ## URLs
-- API: `http://localhost:5000/api/health`
+- API: `http://localhost:5001/api/health`
 - Web dashboard: `http://localhost:5173/dashboard`
+- Web user app: `http://localhost:5173/user-app`
 - Third-party verifier UI: `http://localhost:5050`
 
 ## Full local demo checklist
@@ -33,11 +34,11 @@ bash ./scripts/dev-all.sh
 ## Useful debug checks
 - API health:
 ```bash
-curl http://localhost:5000/api/health
+curl http://localhost:5001/api/health
 ```
 - Ready:
 ```bash
-curl http://localhost:5000/api/ready
+curl http://localhost:5001/api/ready
 ```
 - Cargo installed:
 ```bash

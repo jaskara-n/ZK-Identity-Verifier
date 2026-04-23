@@ -17,6 +17,7 @@ yarn dev:verifier
 
 ## Local UI
 - `http://localhost:5050`
+- User app handoff target: `http://localhost:5173/user-app`
 
 ## Proxy endpoints exposed by this app
 - `GET /health`

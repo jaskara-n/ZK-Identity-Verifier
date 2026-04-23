@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
 
 import { Navbar } from "@/components/navbar";
 import { readChallengeState } from "@/lib/demo-state";
@@ -12,9 +11,7 @@ const parseJson = async (response: Response) => {
 };
 
 export default function DemoUserPage() {
-  const [, setLocation] = useLocation();
-
-  const [apiBase, setApiBase] = useState("http://localhost:5000/api");
+  const [apiBase, setApiBase] = useState("http://localhost:5001/api");
   const [challengeId, setChallengeId] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [verifierId, setVerifierId] = useState("merchant-123");
@@ -26,12 +23,23 @@ export default function DemoUserPage() {
   const [output, setOutput] = useState<JsonObject>({});
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const challengeFromUrl = params.get("challengeId");
+    const sessionFromUrl = params.get("sessionId");
+    const verifierFromUrl = params.get("verifierId");
+    const ageFromUrl = params.get("ageThreshold");
+
+    if (challengeFromUrl) setChallengeId(challengeFromUrl);
+    if (sessionFromUrl) setSessionId(sessionFromUrl);
+    if (verifierFromUrl) setVerifierId(verifierFromUrl);
+    if (ageFromUrl && Number(ageFromUrl) > 0) setAgeThreshold(Number(ageFromUrl));
+
     const latest = readChallengeState();
     if (latest) {
-      setChallengeId(latest.challengeId);
-      setSessionId(latest.sessionId);
-      setVerifierId(latest.verifierId);
-      setAgeThreshold(latest.ageThreshold);
+      if (!challengeFromUrl) setChallengeId(latest.challengeId);
+      if (!sessionFromUrl) setSessionId(latest.sessionId);
+      if (!verifierFromUrl) setVerifierId(latest.verifierId);
+      if (!ageFromUrl) setAgeThreshold(latest.ageThreshold);
     }
   }, []);
 
@@ -105,9 +113,11 @@ export default function DemoUserPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">User Proof Flow</h1>
-            <p className="text-muted-foreground">Load challenge, generate proof, and submit verification.</p>
+            <p className="text-muted-foreground">User-side app: load challenge, generate proof, and submit verification.</p>
           </div>
-          <button type="button" className="px-4 py-2 rounded border" onClick={() => setLocation("/demo/verifier")}>Back to Verifier</button>
+          <a href="http://localhost:5050" target="_blank" rel="noreferrer" className="px-4 py-2 rounded border">
+            Open Verifier App
+          </a>
         </div>
 
         <section className="rounded-xl border border-border p-4 space-y-3">

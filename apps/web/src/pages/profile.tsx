@@ -1,128 +1,147 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
+
+import { Navbar } from "@/components/navbar";
 import { useAuth } from "@/context/authcontext";
 
-const ProfileForm = () => {
-  const { user, loading } = useAuth();
+export default function ProfilePage() {
+  const [_, setLocation] = useLocation();
+  const { user, loading, updateProfile, changePassword, signOut } = useAuth();
 
-  const [formData, setFormData] = useState({
-    displayName: "",
-    email: "",
-    phone: "",
-    aadhaar: "",
-    passport: "",
-    age: "",
-  });
+  const [displayName, setDisplayName] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        displayName: user.displayName,
-        email: user.email,
-        phone: "",
-        aadhaar: "",
-        passport: "",
-        age: "",
-      });
+    if (!loading && !user) {
+      setLocation("/auth");
+      return;
     }
-  }, [user]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+    if (user) {
+      setDisplayName(user.displayName);
+    }
+  }, [user, loading, setLocation]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const onUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
-    alert("Form data saved to console!");
+    try {
+      setBusy(true);
+      setStatus("");
+      await updateProfile(displayName);
+      setStatus("Profile updated.");
+    } catch (err) {
+      setStatus((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const onChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setBusy(true);
+      setStatus("");
+
+      if (newPassword !== confirmPassword) {
+        throw new Error("New passwords do not match");
+      }
+
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setStatus("Password updated.");
+    } catch (err) {
+      setStatus((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (loading || !user) {
+    return <div className="min-h-screen bg-background" />;
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50 p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md flex flex-col gap-4"
-      >
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar />
+      <main className="container mx-auto px-6 pt-24 pb-12 space-y-6">
+        <header>
+          <h1 className="text-3xl font-bold">Profile Settings</h1>
+          <p className="text-muted-foreground">Manage your local demo account details.</p>
+        </header>
 
-        <div className="flex justify-end">
-  <button
-    type="button"
-    onClick={() => (window.location.href = "/")} // go back to home
-    className="text-blue-700 font-bold text-xl hover:text-blue-900"
-  >
-X
-  </button>
-</div>
-        <h1 className="text-2xl font-bold text-blue-700 mb-4">My Profile</h1>
+        <section className="rounded-xl border border-border p-4 space-y-4 max-w-2xl">
+          <h2 className="font-semibold">Account</h2>
+          <div className="space-y-2 text-sm">
+            <p><span className="text-muted-foreground">Email:</span> {user.email}</p>
+            <p><span className="text-muted-foreground">User ID:</span> {user.id}</p>
+          </div>
 
-        <label className="text-blue-700">Display Name</label>
-        <input
-          type="text"
-          name="displayName"
-          value={formData.displayName}
-          onChange={handleChange}
-          className="w-full border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          disabled
-        />
+          <form className="space-y-3" onSubmit={onUpdateProfile}>
+            <label className="text-sm text-muted-foreground" htmlFor="displayName">Display Name</label>
+            <input
+              id="displayName"
+              className="w-full border rounded px-3 py-2 bg-transparent"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+            <button type="submit" disabled={busy} className="px-4 py-2 rounded bg-primary text-primary-foreground disabled:opacity-50">
+              Save Profile
+            </button>
+          </form>
+        </section>
 
-        <label className="text-blue-700">Email</label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          disabled
-        />
+        <section className="rounded-xl border border-border p-4 space-y-4 max-w-2xl">
+          <h2 className="font-semibold">Change Password</h2>
+          <form className="space-y-3" onSubmit={onChangePassword}>
+            <input
+              type="password"
+              placeholder="Current password"
+              className="w-full border rounded px-3 py-2 bg-transparent"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="New password"
+              className="w-full border rounded px-3 py-2 bg-transparent"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              className="w-full border rounded px-3 py-2 bg-transparent"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <button type="submit" disabled={busy} className="px-4 py-2 rounded bg-primary text-primary-foreground disabled:opacity-50">
+              Update Password
+            </button>
+          </form>
+        </section>
 
-        <label className="text-blue-700">Phone Number</label>
-        <input
-          type="text"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          className="w-full border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
+        <section className="rounded-xl border border-border p-4 max-w-2xl space-y-3">
+          <h2 className="font-semibold">Session</h2>
+          <button
+            type="button"
+            className="px-4 py-2 rounded border"
+            onClick={() => {
+              signOut();
+              setLocation("/auth");
+            }}
+          >
+            Logout
+          </button>
+        </section>
 
-        <label className="text-blue-700">Aadhaar Number</label>
-        <input
-          type="text"
-          name="aadhaar"
-          value={formData.aadhaar}
-          onChange={handleChange}
-          className="w-full border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-
-        <label className="text-blue-700">Passport Number</label>
-        <input
-          type="text"
-          name="passport"
-          value={formData.passport}
-          onChange={handleChange}
-          className="w-full border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-
-        <label className="text-blue-700">Age (18+)</label>
-        <input
-          type="number"
-          name="age"
-          value={formData.age}
-          min={18}
-          onChange={handleChange}
-          className="w-full border border-blue-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-        />
-
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded shadow mt-2"
-        >
-          Save
-        </button>
-      </form>
+        {status ? <p className="max-w-2xl text-sm text-muted-foreground">{status}</p> : null}
+      </main>
     </div>
   );
-};
-
-export default ProfileForm;
+}

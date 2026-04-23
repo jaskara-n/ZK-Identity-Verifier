@@ -5,7 +5,7 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   HOST: z.string().default("0.0.0.0"),
-  PORT: z.coerce.number().int().min(1).max(65535).default(5000),
+  PORT: z.coerce.number().int().min(1).max(65535).default(5001),
   SESSION_TTL_MINUTES: z.coerce.number().int().min(1).default(10),
   PROOF_SECRET: z.string().min(16).default("dev-only-change-me-please"),
   JWT_SECRET: z.string().min(16).default("dev-jwt-secret-change-me-please"),

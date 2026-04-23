@@ -7,7 +7,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(5050),
   HOST: z.string().default("0.0.0.0"),
-  BACKEND_URL: z.string().url().default("http://localhost:5000"),
+  BACKEND_URL: z.string().url().default("http://localhost:5001"),
   INTERNAL_API_KEY: z.string().min(16).default("dev-internal-api-key-please-change"),
 });
 
@@ -16,7 +16,10 @@ const app = express();
 
 app.use(express.json({ limit: "1mb" }));
 
-const registerSchema = z.object({ name: z.string().min(2) });
+const registerSchema = z.object({
+  name: z.string().min(2),
+  internalApiKey: z.string().min(16).optional(),
+});
 const createChallengeSchema = z.object({
   accessToken: z.string().min(10),
   verifierId: z.string().min(3),
@@ -63,9 +66,9 @@ app.post("/register-client", async (req, res, next) => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-internal-api-key": env.INTERNAL_API_KEY,
+          "x-internal-api-key": body.internalApiKey ?? env.INTERNAL_API_KEY,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ name: body.name }),
       },
     );
 

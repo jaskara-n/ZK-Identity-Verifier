@@ -1,37 +1,18 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLocation } from "wouter";
+
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ShieldCheck, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/authcontext";
 
-// Schemas
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(1, "Password required"),
@@ -49,9 +30,15 @@ const registerSchema = z
   });
 
 export default function AuthPage() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const { signIn, register } = useAuth();
+
+  const defaultTab = useMemo(() => {
+    const mode = new URLSearchParams(window.location.search).get("mode");
+    return mode === "register" ? "register" : "login";
+  }, [location]);
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -63,29 +50,27 @@ export default function AuthPage() {
     defaultValues: { email: "", password: "", confirmPassword: "" },
   });
 
-  // 🔹 Email Login
   async function onLogin(data: z.infer<typeof loginSchema>) {
     try {
+      setError("");
       setIsLoading(true);
       await signIn(data.email, data.password);
       setLocation("/dashboard");
     } catch (err) {
-      console.error(err);
-      alert("Login failed");
+      setError((err as Error).message || "Login failed");
     } finally {
       setIsLoading(false);
     }
   }
 
-  // 🔹 Email Register
   async function onRegister(data: z.infer<typeof registerSchema>) {
     try {
+      setError("");
       setIsLoading(true);
       await register(data.email, data.password);
       setLocation("/dashboard");
     } catch (err) {
-      console.error(err);
-      alert("Registration failed");
+      setError((err as Error).message || "Registration failed");
     } finally {
       setIsLoading(false);
     }
@@ -101,28 +86,22 @@ export default function AuthPage() {
             <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <ShieldCheck className="w-6 h-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-bold">
-              Welcome to ZK-ID
-            </CardTitle>
-            <CardDescription>
-              Securely manage your decentralized identity
-            </CardDescription>
+            <CardTitle className="text-2xl font-bold">Welcome to ZK-ID</CardTitle>
+            <CardDescription>Local demo auth for clean end-to-end testing</CardDescription>
           </CardHeader>
 
           <CardContent>
-            <Tabs defaultValue="login">
+            {error ? <p className="mb-4 text-sm text-red-500">{error}</p> : null}
+
+            <Tabs defaultValue={defaultTab}>
               <TabsList className="grid w-full grid-cols-2 mb-8">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
 
-              {/* LOGIN */}
               <TabsContent value="login">
                 <Form {...loginForm}>
-                  <form
-                    onSubmit={loginForm.handleSubmit(onLogin)}
-                    className="space-y-4"
-                  >
+                  <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
                     <FormField
                       control={loginForm.control}
                       name="email"
@@ -130,7 +109,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} autoComplete="email" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -143,29 +122,23 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input type="password" {...field} autoComplete="current-password" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading && (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      )}
+                      {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                       Sign In
                     </Button>
                   </form>
                 </Form>
               </TabsContent>
 
-              {/* REGISTER */}
               <TabsContent value="register">
                 <Form {...registerForm}>
-                  <form
-                    onSubmit={registerForm.handleSubmit(onRegister)}
-                    className="space-y-4"
-                  >
+                  <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
                     <FormField
                       control={registerForm.control}
                       name="email"
@@ -173,7 +146,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Input {...field} autoComplete="email" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -186,7 +159,7 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input type="password" {...field} autoComplete="new-password" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -199,30 +172,24 @@ export default function AuthPage() {
                         <FormItem>
                           <FormLabel>Confirm Password</FormLabel>
                           <FormControl>
-                            <Input type="password" {...field} />
+                            <Input type="password" {...field} autoComplete="new-password" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading && (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      )}
+                      {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                       Create Account
                     </Button>
                   </form>
                 </Form>
               </TabsContent>
             </Tabs>
-
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              Local demo auth is enabled for end-to-end testing.
-            </p>
           </CardContent>
 
           <CardFooter className="text-center text-sm text-muted-foreground">
-            By continuing, you agree to our Terms & Privacy Policy.
+            Demo mode only. Use backend auth provider in production.
           </CardFooter>
         </Card>
       </div>

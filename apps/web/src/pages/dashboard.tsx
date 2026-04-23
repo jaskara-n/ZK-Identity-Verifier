@@ -46,7 +46,7 @@ const Badge = ({ label, tone }: { label: string; tone: "neutral" | "good" | "bad
 };
 
 export default function Dashboard() {
-  const [apiBase, setApiBase] = useState("http://localhost:5000/api");
+  const [apiBase, setApiBase] = useState("http://localhost:5001/api");
   const [internalApiKey, setInternalApiKey] = useState("dev-internal-api-key-please-change");
   const [clientName, setClientName] = useState("merchant-app");
 

@@ -109,7 +109,7 @@
         <p class="sub">Professional flow: create challenge -> send user to ZK-ID user app -> fetch final decision. No raw identity data needed on verifier side.</p>
         <div class="pill-row">
           <span class="pill">Verifier UI: http://localhost:5050</span>
-          <span class="pill">User App: http://localhost:5173/demo/user</span>
+          <span class="pill">User App: http://localhost:5173/user-app</span>
           <span class="pill" id="selectedChain">Chain: Ethereum (Mock)</span>
         </div>
       </section>
@@ -118,6 +118,7 @@
         <article class="card">
           <h3>1. Register + Auth</h3>
           <div class="row"><label>Client Name</label><input id="clientName" value="merchant-app" /></div>
+          <div class="row"><label>Internal API Key</label><input id="internalApiKey" value="dev-internal-api-key-please-change" /></div>
           <div class="row"><label>Verifier API Key</label><input id="apiKey" /></div>
           <div class="row"><label>Mock Chain</label>
             <select id="chainName">
@@ -150,7 +151,7 @@
           <p class="muted">User opens this link, approves proof generation in their app, and submits to this challenge.</p>
           <div class="row"><label>User Flow Link</label><input id="userFlowUrl" readonly /></div>
           <div class="row-buttons">
-            <a id="openUserAppBtn" class="link-btn ghost" href="http://localhost:5173/demo/user" target="_blank" rel="noreferrer">Open User App</a>
+            <a id="openUserAppBtn" class="link-btn ghost" href="http://localhost:5173/user-app" target="_blank" rel="noreferrer">Open User App</a>
           </div>
           <div id="verdictCard" class="verdict">
             <div class="muted">Verifier Decision</div>

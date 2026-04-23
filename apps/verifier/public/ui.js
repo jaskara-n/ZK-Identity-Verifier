@@ -1,13 +1,15 @@
 const output = document.getElementById("output");
 const errorBox = document.getElementById("error");
 const stateChip = document.getElementById("state");
-const historyBox = document.getElementById("history");
 const selectedChain = document.getElementById("selectedChain");
 const chainSelect = document.getElementById("chainName");
 const verdictText = document.getElementById("verdictText");
 const verdictCard = document.getElementById("verdictCard");
+const userFlowUrlInput = document.getElementById("userFlowUrl");
+const openUserAppBtn = document.getElementById("openUserAppBtn");
+const togglePollBtn = document.getElementById("togglePollBtn");
 
-const HISTORY_KEY = "zk_verifier_demo_history";
+let pollTimer = null;
 
 const read = (id) => document.getElementById(id).value.trim();
 const write = (id, value) => {
@@ -34,7 +36,7 @@ const setVerdict = (status, reason = "") => {
   }
 
   if (reason) {
-    verdictText.textContent = `${verdictText.textContent} — ${reason}`;
+    verdictText.textContent = `${verdictText.textContent} - ${reason}`;
   }
 };
 
@@ -57,44 +59,50 @@ const post = (url, body) =>
     body: JSON.stringify(body),
   });
 
-const pushHistory = (entry) => {
-  const current = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  const next = [entry, ...current].slice(0, 10);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-  renderHistory();
-};
-
-const renderHistory = () => {
-  const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  if (!list.length) {
-    historyBox.className = "history muted";
-    historyBox.textContent = "No verifications yet.";
-    return;
-  }
-
-  historyBox.className = "history";
-  historyBox.innerHTML = list
-    .map(
-      (item) => `
-        <div class="history-item">
-          <strong>${item.result}</strong> | ${item.verifierId} | ${item.chain}<br />
-          <span class="muted">Challenge: ${item.challengeId}</span><br />
-          <span class="muted">${new Date(item.createdAt).toLocaleString()}</span>
-        </div>
-      `,
-    )
-    .join("");
-};
-
 const run = async (label, fn) => {
   setState(`${label}...`);
   try {
-    const data = await fn();
+    await fn();
     setState(`${label} done`, "ok");
-    return data;
-  } catch (error) {
+  } catch {
     setState(`${label} failed`, "bad");
-    throw error;
+  }
+};
+
+const refreshUserFlowLink = () => {
+  const params = new URLSearchParams({
+    challengeId: read("challengeId"),
+    sessionId: read("sessionId"),
+    verifierId: read("verifierId"),
+    ageThreshold: read("ageThreshold"),
+  });
+  const url = `http://localhost:5173/user-app?${params.toString()}`;
+  userFlowUrlInput.value = url;
+  openUserAppBtn.href = url;
+};
+
+const fetchStatus = async () => {
+  const challengeId = read("challengeId");
+  const accessToken = read("accessToken");
+  if (!challengeId || !accessToken) {
+    throw new Error("challenge and token required");
+  }
+
+  const res = await fetch(
+    `/challenges/${encodeURIComponent(challengeId)}?accessToken=${encodeURIComponent(accessToken)}`,
+  );
+
+  if (!res.ok) return fail(res);
+  const data = await res.json();
+  show({ ...data, chain: chainSelect.value });
+  setVerdict(data?.status || "pending", data?.reason || "");
+
+  if (["verified", "rejected", "expired"].includes(String(data?.status || "").toLowerCase())) {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+      togglePollBtn.textContent = "Start Auto Poll";
+    }
   }
 };
 
@@ -102,9 +110,16 @@ chainSelect.addEventListener("change", () => {
   selectedChain.textContent = `Chain: ${chainSelect.value}`;
 });
 
+["challengeId", "sessionId", "verifierId", "ageThreshold"].forEach((id) => {
+  document.getElementById(id).addEventListener("input", refreshUserFlowLink);
+});
+
 document.getElementById("registerBtn").addEventListener("click", async () => {
   await run("Register", async () => {
-    const res = await post("/register-client", { name: read("clientName") });
+    const res = await post("/register-client", {
+      name: read("clientName"),
+      internalApiKey: read("internalApiKey"),
+    });
     if (!res.ok) return fail(res);
     const data = await res.json();
     write("apiKey", data.apiKey);
@@ -134,62 +149,36 @@ document.getElementById("challengeBtn").addEventListener("click", async () => {
     const data = await res.json();
     write("challengeId", data.challengeId);
     write("sessionId", data.sessionId);
-    show({ ...data, chain: chainSelect.value });
-  });
-});
-
-document.getElementById("submitBtn").addEventListener("click", async () => {
-  await run("Submit proof", async () => {
-    const challengeId = read("challengeId");
-
-    const res = await post("/simulate-submit", {
-      challengeId,
-      sessionId: read("sessionId"),
-      verifierId: read("verifierId"),
-      ageThreshold: Number(read("ageThreshold")),
-      birthDate: read("birthDate"),
-      passportNumber: read("passportNumber"),
-    });
-
-    if (!res.ok) return fail(res);
-    const data = await res.json();
-    show({ ...data, chain: chainSelect.value });
-
-    const result = data?.submitResult?.status || "pending";
-    setVerdict(result, data?.submitResult?.reason || "");
-    if (result === "verified" || result === "rejected") {
-      pushHistory({
-        result,
-        verifierId: read("verifierId"),
-        chain: chainSelect.value,
-        challengeId,
-        createdAt: new Date().toISOString(),
-      });
-    }
+    refreshUserFlowLink();
+    setVerdict("pending");
+    show({ ...data, chain: chainSelect.value, next: "Open user app link and let user submit proof" });
   });
 });
 
 document.getElementById("statusBtn").addEventListener("click", async () => {
-  await run("Fetch status", async () => {
-    const challengeId = read("challengeId");
-    const accessToken = read("accessToken");
-    const res = await fetch(
-      `/challenges/${encodeURIComponent(challengeId)}?accessToken=${encodeURIComponent(accessToken)}`,
-    );
+  await run("Fetch status", fetchStatus);
+});
 
-    if (!res.ok) return fail(res);
-    const data = await res.json();
-    show({ ...data, chain: chainSelect.value });
-    setVerdict(data?.status || "pending", data?.reason || "");
-  });
+togglePollBtn.addEventListener("click", () => {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+    togglePollBtn.textContent = "Start Auto Poll";
+    setState("Auto poll stopped");
+    return;
+  }
+
+  pollTimer = setInterval(() => {
+    fetchStatus().catch(() => {});
+  }, 3000);
+  togglePollBtn.textContent = "Stop Auto Poll";
+  setState("Auto poll active", "ok");
 });
 
 document.getElementById("fetchCredentialsBtn").addEventListener("click", async () => {
   await run("Fetch credentials", async () => {
     const accessToken = read("accessToken");
-    const res = await fetch(
-      `/credentials?accessToken=${encodeURIComponent(accessToken)}`,
-    );
+    const res = await fetch(`/credentials?accessToken=${encodeURIComponent(accessToken)}`);
     if (!res.ok) return fail(res);
     const data = await res.json();
     const firstActive = data?.items?.find?.((item) => item.status === "active");
@@ -218,11 +207,29 @@ document.getElementById("revokeBtn").addEventListener("click", async () => {
   });
 });
 
-document.getElementById("clearHistoryBtn").addEventListener("click", () => {
-  localStorage.removeItem(HISTORY_KEY);
-  renderHistory();
-  setState("History cleared");
+// Demo shortcut only
+
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  await run("Submit proof (shortcut)", async () => {
+    const challengeId = read("challengeId");
+
+    const res = await post("/simulate-submit", {
+      challengeId,
+      sessionId: read("sessionId"),
+      verifierId: read("verifierId"),
+      ageThreshold: Number(read("ageThreshold")),
+      birthDate: read("birthDate"),
+      passportNumber: read("passportNumber"),
+    });
+
+    if (!res.ok) return fail(res);
+    const data = await res.json();
+    show({ ...data, chain: chainSelect.value });
+
+    const result = data?.submitResult?.status || "pending";
+    setVerdict(result, data?.submitResult?.reason || "");
+  });
 });
 
 setVerdict("pending");
-renderHistory();
+refreshUserFlowLink();

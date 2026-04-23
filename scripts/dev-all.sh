@@ -6,6 +6,9 @@ cd "$ROOT_DIR"
 
 echo "Starting API, verifier app, and web app..."
 
+API_PORT="${PORT:-5001}"
+BACKEND_URL="${BACKEND_URL:-http://localhost:${API_PORT}}"
+
 if command -v cargo >/dev/null 2>&1; then
   echo "Building Rust bridge (zk-node)..."
   yarn build:zk
@@ -22,13 +25,13 @@ trap cleanup EXIT INT TERM
 
 (
   cd "$ROOT_DIR/apps/api"
-  "$ROOT_DIR/node_modules/.bin/tsx" src/index.ts
+  PORT="$API_PORT" "$ROOT_DIR/node_modules/.bin/tsx" src/index.ts
 ) &
 API_PID=$!
 
 (
   cd "$ROOT_DIR/apps/verifier"
-  "$ROOT_DIR/node_modules/.bin/tsx" src/index.ts
+  BACKEND_URL="$BACKEND_URL" "$ROOT_DIR/node_modules/.bin/tsx" src/index.ts
 ) &
 VERIFIER_PID=$!
 

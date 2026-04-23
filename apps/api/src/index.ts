@@ -3,9 +3,6 @@ import { createApp } from "./app";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
 
-const app = createApp();
-const server = createServer(app);
-
 const listenOptionsFor = (port: number) =>
   process.platform === "darwin" || process.platform === "win32"
     ? { port, host: env.HOST }
@@ -14,6 +11,9 @@ const listenOptionsFor = (port: number) =>
 const maxPortAttempts = env.NODE_ENV === "development" ? 10 : 1;
 
 const startServer = (port: number, remainingAttempts: number) => {
+  const app = createApp();
+  const server = createServer(app);
+
   server.once("error", (err: any) => {
     if (err?.code === "EADDRINUSE" && remainingAttempts > 1) {
       logger.warn(`port ${port} in use, trying ${port + 1}... (set PORT to override)`);
